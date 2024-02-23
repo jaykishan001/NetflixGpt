@@ -1,6 +1,9 @@
 import { useRef, useState } from "react"
 import Header from "./Header"
 import validData from "./utils/validData";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "./utils/fireBase";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
 
@@ -9,10 +12,53 @@ const Login = () => {
 
     const email = useRef(null);
     const password = useRef(null);
+    const navigate = useNavigate();
 
     const handleButtonCick = () => {
         const message = validData(email.current.value, password.current.value)
         setValidLogin(message);
+
+        if (message) return;
+        //sign in sign up logic
+
+
+        if (!isSignIn) {
+            //sign up logic
+
+            createUserWithEmailAndPassword(auth, email.current.value, password.current.value)
+                .then((userCredential) => {
+                    // Signed up 
+                    const user = userCredential.user;
+                    console.log(user);
+                    navigate("/browse");
+
+                }) 
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    setValidLogin(errorCode + "-" + errorMessage)
+
+                });
+
+
+
+        }
+        else {
+            //sign in logic
+            signInWithEmailAndPassword(auth, email.current.value, password.current.value)
+                .then((userCredential) => {
+                    // Signed in 
+                    const user = userCredential.user;
+                    console.log(user);
+                    navigate("/browse");
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    setValidLogin(errorCode + "-" + errorMessage)
+                });
+
+        }
 
     }
 
@@ -63,7 +109,7 @@ const Login = () => {
                         onClick={handleButtonCick}
                     >{isSignIn ? "Sign In" : "Sign Up"}</button>
                     <p>{isSignIn ? "New to Netflix?" : "Already have a account?"}
-                        <span className="cursor-pointer" onClick={handleSignIn}>{isSignIn ? " Sign In" : " Sign Up"}</span>
+                        <span className="cursor-pointer" onClick={handleSignIn}>{isSignIn ? " Sign Up" : " Sign In"}</span>
                     </p>
                 </div>
 
